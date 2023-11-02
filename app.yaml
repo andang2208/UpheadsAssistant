@@ -1,0 +1,11 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /
+  static_files: dist/mmusic-app/index.html
+  upload: dist/mmusic-app/index.html
+
+- url: /
+  static_dir: dist/mmusic-app

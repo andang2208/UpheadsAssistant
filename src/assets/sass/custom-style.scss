@@ -1,0 +1,23 @@
+@import "~ngx-toastr/toastr";
+@import "~@ng-select/ng-select/themes/default.theme.css";
+
+.cursor-pointer:hover {
+  cursor: pointer;
+}
+
+.checkbox-label {
+  margin-left: 5px;
+}
+
+.font-weight-bold {
+  font-weight: bold;
+}
+
+.float-right {
+  text-align: right;
+}
+
+.card-header {
+  border-bottom: 1px solid #eff2f5 !important;
+  padding-bottom: 25px !important;
+}

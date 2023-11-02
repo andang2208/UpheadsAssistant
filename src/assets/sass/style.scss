@@ -1,0 +1,55 @@
+//
+// Theme style
+//
+
+// Mode
+$mode: default;
+
+// Initialize
+@import "init";
+
+// Components
+@import "./core/components/components";
+@import "components/components";
+
+// Layout
+@import "layout/layout";
+
+// Angular vendors
+@import "~socicon/css/socicon.css";
+@import "~@fortawesome/fontawesome-free/css/all.min.css";
+@import "~line-awesome/dist/line-awesome/css/line-awesome.css";
+@import "~prism-themes/themes/prism-shades-of-purple.css";
+@import "~bootstrap-icons/font/bootstrap-icons.css";
+@import "~animate.css/animate.css";
+@import "./core/vendors/plugins/prismjs";
+@import "./core/vendors/plugins/formvalidation";
+
+.datatable-row-detail {
+  height: 100% !important;
+}
+
+.btn-datatable {
+  @extend .btn;
+  @extend .btn-icon;
+  align-items: baseline;
+  padding: 2px;
+  width: calc(2em);
+}
+
+.ng-select.ng-select-single .ng-select-container {
+  height: 42.6px;
+  border: 1px solid #e4e6ef;
+}
+
+@font-face {
+  font-family: "Nadirii Pro";
+  src: url("../fonts/NF-Nadirii-Bold.eot");
+  src: local("Nadirii Pro Bold"), local("NF-Nadirii-Bold"),
+    url("../fonts/NF-Nadirii-Bold.eot?#iefix") format("embedded-opentype"),
+    url("../fonts/NF-Nadirii-Bold.woff2") format("woff2"),
+    url("../fonts/NF-Nadirii-Bold.woff") format("woff"),
+    url("../fonts/NF-Nadirii-Bold.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}

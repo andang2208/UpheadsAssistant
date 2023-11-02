@@ -1,0 +1,90 @@
+<div class="modal-body">
+  <div class="modal-header">
+    <h2 class="fw-bolder">Add Question</h2>
+    <div class="btn btn-sm btn-icon btn-active-color-primary"></div>
+  </div>
+
+  <div class="modal-body">
+    <form class="form" [formGroup]="form">
+      <div class="row">
+        <div class="col-xl-12">
+          <label class="form-label"> Type </label>
+          <ng-select
+            [items]="types"
+            bindLabel="text"
+            bindValue="id"
+            placeholder="Select city"
+            formControlName="type"
+          >
+          </ng-select>
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <div class="col-xl-12">
+          <label class="form-label required"> Question </label>
+          <input class="form-control" formControlName="question" />
+        </div>
+      </div>
+
+      <!-- Checkbox Answers just only show when choose checkbox question type -->
+      <div
+        class="checkbox-answer-box"
+        *ngIf="form.get('type').value === type_enum.CheckBox"
+      >
+        <label class="form-label mt-5"> Checkbox answers: </label>
+        <ng-container formArrayName="checkboxAnswers">
+          <ng-container
+            *ngFor="
+              let checkboxAnswer of checkboxAnswers.controls;
+              let i = index
+            "
+          >
+            <div [formGroupName]="i">
+              <input class="form-control mb-5" formControlName="answer" />
+            </div>
+          </ng-container>
+        </ng-container>
+        <a href="javascript:void(0);" (click)="addCheckboxAnswerFormGroup()"
+          >+ Add another answer</a
+        >
+        <div class="mt-5">
+          <input
+            type="checkbox"
+            id="allow-other-answer"
+            name="allow-other-answer"
+            formControlName="allowOtherAnswer"
+          />
+          <label class="form-label checkbox-label" for="allow-other-answer">
+            Allow user to specify their own answer
+          </label>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <input
+          type="checkbox"
+          id="required"
+          name="required"
+          formControlName="required"
+        />
+        <label class="form-label checkbox-label" for="required">
+          This field is required
+        </label>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer">
+    <button
+      class="btn btn-light btn-sm me-3"
+      (click)="close()"
+      translate="Common.Cancel"
+    ></button>
+    <button
+      class="btn btn-primary btn-sm me-3"
+      (click)="submit()"
+      translate="Common.Submit"
+    ></button>
+  </div>
+</div>
