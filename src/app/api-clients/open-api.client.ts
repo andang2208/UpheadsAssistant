@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
     providedIn: 'root',
 })
 export class OpenApiClient {
-    apiKey = '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'; // Replace with your actual ChatGPT API key
+    apiKey = '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'; // Replace with your actual ChatGPT API key
     apiEndpoint = 'https://api.openai.com/v1/chat/completions';
 
     constructor(private http: HttpClient) {}

@@ -27,6 +27,9 @@ export class BuilderComponent implements OnInit, AfterViewInit {
         tableName: new FormControl('', Validators.required),
         columns: new FormArray([]),
     });
+    integrationTestForm: FormGroup = new FormGroup({
+        command: new FormControl('', Validators.required),
+    });
     type_enum = QUESTION_TYPE;
     constructor(private fb: FormBuilder, private openAI: OpenApiClient) {}
 
@@ -38,6 +41,10 @@ export class BuilderComponent implements OnInit, AfterViewInit {
         this.form = this.fb.group({
             tableName: new FormControl('', Validators.required),
             columns: this.fb.array([this.createColumnNameFormGroup()]),
+            answer: new FormControl(''),
+        });
+        this.integrationTestForm = this.fb.group({
+            functionName: new FormControl('', Validators.required),
             answer: new FormControl(''),
         });
     }
@@ -56,6 +63,19 @@ export class BuilderComponent implements OnInit, AfterViewInit {
     private createColumnNameFormGroup(): FormGroup {
         return new FormGroup({
             columnName: new FormControl('', Validators.required),
+        });
+    }
+
+    public askIntegrationTest() {
+        const functionName = this.integrationTestForm.get('functionName').value;
+        const question =
+            'I have {0}, give me 5 best cases that I can write for the integration test, shortly answer please'.replace(
+                '{0}',
+                functionName
+            );
+        this.openAI.sendMessage(question).subscribe((response: any) => {
+            const reply = response.choices[0].message.content;
+            this.integrationTestForm.get('answer').setValue(reply);
         });
     }
 

@@ -9,9 +9,15 @@ import { NgImageFullscreenViewModule } from 'ng-image-fullscreen-view';
 import { NgImageSliderModule } from 'ng-image-slider';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { SwiperModule } from 'swiper/angular';
+import { TabsComponent } from './tab/tabs.component';
+import { TabContainerComponent } from './tab/tab-container.component';
 
 @NgModule({
-    declarations: [AddQuestionsModalComponent],
+    declarations: [
+        AddQuestionsModalComponent,
+        TabsComponent,
+        TabContainerComponent,
+    ],
     imports: [
         CommonModule,
         FormsModule,
@@ -35,6 +41,8 @@ import { SwiperModule } from 'swiper/angular';
         NgImageSliderModule,
         NgImageFullscreenViewModule,
         AddQuestionsModalComponent,
+        TabsComponent,
+        TabContainerComponent,
     ],
     providers: [],
 })
