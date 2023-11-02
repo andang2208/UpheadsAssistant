@@ -17,7 +17,7 @@ export class HttpHeaderInterceptor implements HttpInterceptor {
         httpRequest: HttpRequest<any>,
         next: HttpHandler
     ): Observable<HttpEvent<any>> {
-        let language = this.translationService.getSelectedLanguage();
+        let language = '';
 
         return next.handle(
             httpRequest.clone({ setHeaders: { 'User-Culture': language } })

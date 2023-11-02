@@ -3,57 +3,63 @@
     <div class="card mb-5 mb-xl-10">
       <div class="card-header border-0 pt-9">
         <div class="card-title m-0">
-          <img src="./assets/media/img/avnon.png" class="w-50" />
+          <h1 class="form-label font-weight-bold">Table Idex</h1>
+          <!-- <img src="./assets/media/img/avnon.png" class="w-50" /> -->
         </div>
       </div>
 
       <div class="card-body p-9">
-        <span *ngIf="questions.length == 0"
-          >No question found. Please click "Add New Question"</span
-        >
-        <form class="form" *ngIf="questions.length > 0" [formGroup]="form">
-          <ng-container formArrayName="questions">
-            <ng-container
-              *ngFor="let questionForm of questions.controls; let i = index"
-            >
-              <div class="mt-5">
-                <!-- Question -->
-                <label
-                  class="form-label font-weight-bold"
-                  [ngClass]="
-                    questionForm.get('required').value ? 'required' : ''
-                  "
-                  >{{ getValueInQuestionsForm(i, "question") }}</label
-                >
-
-                <!-- Answer -->
-                <ng-container
-                  *ngTemplateOutlet="
-                    getValueInQuestionsForm(i, 'type') === type_enum.Paragraph
-                      ? paragraphTemplate
-                      : checkboxTemplate;
-                    context: { questionForm: questionForm, i: i }
-                  "
-                >
-                </ng-container>
-              </div>
+        <form class="form" [formGroup]="form">
+          <label class="form-label">Table name</label>
+          <input type="text" class="form-control" formControlName="tableName" />
+          <div class="mt-5">
+            <ng-container formArrayName="columns">
+              <ng-container
+                *ngFor="let checkboxAnswer of columns.controls; let i = index"
+              >
+                <div [formGroupName]="i">
+                  <label class="form-label">Column name</label>
+                  <div class="row">
+                    <div class="col-10">
+                      <input
+                        class="form-control mb-5"
+                        formControlName="columnName"
+                      />
+                    </div>
+                    <div class="col-2">
+                      <button
+                        class="btn btn-primary btn-sm me-3"
+                        (click)="genSQL(i)"
+                      >
+                        <i class="fa fa-arrow-right" style="color: white"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
             </ng-container>
-          </ng-container>
+          </div>
+
+          <a href="javascript:void(0);" (click)="addColumn()">+ Add column</a>
+          <div class="mt-5">
+            <textarea
+              class="form-control answer-text"
+              formControlName="answer"
+            ></textarea>
+          </div>
         </form>
       </div>
 
       <div class="card-footer">
         <div class="row">
           <div class="col-lg-6">
-            <a href="javascript:void(0);" (click)="addNewQuestionClicked()"
-              >Add New Question</a
-            >
+            <!-- <a href="javascript:void(0);" (click)="ask()">Ask</a> -->
           </div>
           <div class="col-lg-6 float-right">
             <button
               class="btn btn-primary btn-sm me-3"
-              (click)="review()"
-              translate="Common.ReviewMyAnswers"
+              (click)="ask()"
+              translate="Ask"
             ></button>
           </div>
         </div>
@@ -61,63 +67,3 @@
     </div>
   </div>
 </div>
-
-<!-- Paragraph template -->
-<ng-template #paragraphTemplate let-i="i" let-questionForm="questionForm">
-  <div [formGroup]="questionForm">
-    <div class="row">
-      <textarea class="form-control" formControlName="paragraphAnswer">
-      </textarea>
-    </div>
-  </div>
-</ng-template>
-
-<!-- Checkbox template -->
-<ng-template #checkboxTemplate let-i="i" let-questionForm="questionForm">
-  <div [formGroup]="questionForm">
-    <div class="row">
-      <ng-container formArrayName="checkboxAnswers">
-        <ng-container
-          *ngFor="
-            let checkboxAnswer of getCheckBoxAnswerFormArray(i).controls;
-            let k = index
-          "
-        >
-          <div [formGroupName]="k">
-            <input
-              type="checkbox"
-              [id]="i + '-' + k"
-              [name]="i + '-' + k"
-              formControlName="checked"
-            />
-            <label
-              *ngIf="!isShowOtherAnswer(i, k)"
-              class="form-label checkbox-label"
-              [for]="i + '-' + k"
-              >{{ getValueInCheckboxAnswerForm(i, k, "text") }}</label
-            >
-
-            <!-- input for other answer -->
-            <input
-              type="text"
-              formControlName="text"
-              class="form-control other-answer"
-              *ngIf="isShowOtherAnswer(i, k)"
-            />
-          </div>
-        </ng-container>
-        <div
-          class="invalid-feedback"
-          *ngIf="
-            questionForm.controls['checkboxAnswers'].errors &&
-            questionForm.controls['checkboxAnswers'].errors.required &&
-            (questionForm.controls['checkboxAnswers'].dirty ||
-              questionForm.controls['checkboxAnswers'].touched)
-          "
-        >
-          At least one checkbox is required to check
-        </div>
-      </ng-container>
-    </div>
-  </div>
-</ng-template>

@@ -5,29 +5,15 @@ import {
     ViewEncapsulation,
 } from '@angular/core';
 import {
-    AbstractControl,
     FormArray,
     FormBuilder,
     FormControl,
     FormGroup,
-    ValidatorFn,
     Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { ToastrService } from 'ngx-toastr';
-import { filter, tap } from 'rxjs/operators';
-import { FormApiClient } from 'src/app/api-clients/form-api.client';
-import { AddQuestionsModalComponent } from '../modals/add-questions-modal.component';
-import {
-    CheckboxAnswer,
-    CheckboxType,
-    ParagraphType,
-    QUESTION_TYPE,
-    Question,
-    QuestionType,
-} from '../models/question-model.component';
+import { UntilDestroy } from '@ngneat/until-destroy';
+import { OpenApiClient } from 'src/app/api-clients/open-api.client';
+import { QUESTION_TYPE } from '../models/question-model.component';
 
 @UntilDestroy()
 @Component({
@@ -38,166 +24,84 @@ import {
 })
 export class BuilderComponent implements OnInit, AfterViewInit {
     form: FormGroup = new FormGroup({
-        questions: new FormArray([]),
+        tableName: new FormControl('', Validators.required),
+        columns: new FormArray([]),
     });
     type_enum = QUESTION_TYPE;
-    constructor(
-        private modalService: NgbModal,
-        private fb: FormBuilder,
-        private router: Router,
-        private formApiClient: FormApiClient,
-        private toastr: ToastrService
-    ) {}
+    constructor(private fb: FormBuilder, private openAI: OpenApiClient) {}
 
     ngOnInit() {
         this.formInit();
     }
 
+    formInit() {
+        this.form = this.fb.group({
+            tableName: new FormControl('', Validators.required),
+            columns: this.fb.array([this.createColumnNameFormGroup()]),
+            answer: new FormControl(''),
+        });
+    }
+
     ngAfterViewInit() {}
 
-    formInit() {
-        this.form = new FormGroup({
-            questions: new FormArray([]),
-        });
-        this.formApiClient.get().subscribe((items) => {
-            if (items) {
-                items.forEach((item: Question) => {
-                    this.addQuestionForm(item);
-                });
-            }
-        });
+    get columns() {
+        return this.form.controls['columns'] as FormArray;
     }
 
-    get questions() {
-        return this.form.controls['questions'] as FormArray;
+    public addColumn() {
+        if (this.columns.length === 5) return;
+        this.columns.push(this.createColumnNameFormGroup());
     }
 
-    addNewQuestionClicked() {
-        // Open dialog
-        const modalRef = this.modalService.open(AddQuestionsModalComponent, {
-            size: 'lg',
-            backdrop: 'static',
-            windowClass: 'my-modal',
-        });
-
-        modalRef.closed
-            .pipe(
-                untilDestroyed(this),
-                filter((isConfirm) => isConfirm),
-                tap((result: Question) => {
-                    this.addQuestionForm(result);
-                })
-            )
-            .subscribe();
-    }
-
-    review() {
-        // Validation
-        if (!this.form.valid) {
-            this.form.markAllAsTouched();
-            this.toastr.warning('Please finish form.');
-            return;
-        }
-        const questions = this.questions.getRawValue();
-        this.formApiClient.post(questions);
-        this.router.navigate(['/answers']);
-    }
-
-    private addQuestionForm(item: Question) {
-        // Add question data to form group
-        let questionForm = new FormGroup({});
-
-        questionForm = this.fb.group({
-            type: item.type,
-            required: item.required,
-            question: item.question,
-        });
-
-        switch (item.type) {
-            // type Paragraph with control paragraphAnswer: paragraphData.answer,
-            case QuestionType.Paragraph:
-                let paragraphData = item.data as ParagraphType;
-                questionForm.addControl(
-                    'paragraphAnswer',
-                    new FormControl(
-                        paragraphData.answer,
-                        item.required ? Validators.required : null
-                    )
-                );
-                break;
-            // type Checkbox with control checkboxAnswers: FormArray
-            case QuestionType.Checkbox:
-                let checkboxData = item.data as CheckboxType;
-                questionForm.addControl(
-                    'checkboxAnswers',
-                    new FormArray(
-                        [],
-                        item.required ? this.minSelectedCheckboxes(1) : null
-                    )
-                );
-                questionForm.addControl(
-                    'allowOtherAnswer',
-                    new FormControl(checkboxData.allowOtherAnswer)
-                );
-                // add answers to checkboxAnswers form array
-                this.addCheckBoxAnswerForm(questionForm, checkboxData.answers);
-                break;
-            default:
-                break;
-        }
-        if (questionForm) this.questions.push(questionForm);
-    }
-
-    private minSelectedCheckboxes(min = 1) {
-        const validator: ValidatorFn = (formArray: AbstractControl) => {
-            if (formArray instanceof FormArray) {
-                const totalSelected = formArray.controls
-                    .map((control) => control.value.checked)
-                    .reduce((prev, next) => (next ? prev + next : prev), 0);
-                return totalSelected >= min ? null : { required: true };
-            }
-        };
-        return validator;
-    }
-
-    private addCheckBoxAnswerForm(
-        questionForm: FormGroup,
-        items: Array<CheckboxAnswer>
-    ) {
-        //  Add checkbox answer to array form
-        items.forEach((item) => {
-            let answerForm = this.fb.group({
-                checked: item.checked,
-                id: item.id,
-                text: item.text,
-                isOther: item.isOther,
-            });
-            (questionForm.controls['checkboxAnswers'] as FormArray).push(
-                answerForm
-            );
+    private createColumnNameFormGroup(): FormGroup {
+        return new FormGroup({
+            columnName: new FormControl('', Validators.required),
         });
     }
 
-    getValueInQuestionsForm(i: number, formName: string) {
-        const control = this.questions?.at(i);
-        return control?.get(formName)?.value;
-    }
+    public ask() {
+        let indexQuestion =
+            'I have table {0} with columns {1}, could you suggest me that I should to create index on which column,  describe shortly in every single column please?';
 
-    getCheckBoxAnswerFormArray(i: number) {
-        const control = this.questions?.at(i);
-        return control?.get('checkboxAnswers') as FormArray;
-    }
-
-    getValueInCheckboxAnswerForm(i: number, k: number, formName: string) {
-        const control = this.getCheckBoxAnswerFormArray(i)?.at(k);
-        return control?.get(formName)?.value;
-    }
-
-    isShowOtherAnswer(i: number, k: number) {
-        return (
-            this.getValueInQuestionsForm(i, 'allowOtherAnswer') &&
-            this.getValueInCheckboxAnswerForm(i, k, 'checked') &&
-            this.getValueInCheckboxAnswerForm(i, k, 'isOther')
+        indexQuestion = indexQuestion.replace(
+            '{0}',
+            this.form.get('tableName').value
         );
+
+        const rawData = this.form.getRawValue();
+        const columnNames = rawData.columns.map((m: any, index: number) => {
+            return m.columnName;
+        });
+
+        indexQuestion = indexQuestion.replace('{1}', columnNames.join(', '));
+
+        this.openAI.sendMessage(indexQuestion).subscribe((response: any) => {
+            const reply = response.choices[0].message.content;
+            this.form.get('answer').setValue(reply);
+        });
+    }
+
+    public genSQL(i: number) {
+        const columnName = this.columns.at(i).value.columnName;
+        const tableName = this.form.get('tableName').value;
+        const indexName = 'IX_' + tableName + '_' + columnName;
+        let askForSQL =
+            "create Sql query to check if indexName is not existed then create index indexName for column {1} on the table {2}, and just show me the query please don't explain anything";
+
+        askForSQL = askForSQL.replace(/indexName/gi, indexName);
+        askForSQL = askForSQL.replace('{1}', columnName);
+        askForSQL = askForSQL.replace('{2}', tableName);
+
+        this.openAI.sendMessage(askForSQL).subscribe((response: any) => {
+            const reply = response.choices[0].message.content;
+            const value = this.form.get('answer').value;
+            this.form
+                .get('answer')
+                .setValue(
+                    value +
+                        '\n\n---------------------------------------\n\n' +
+                        reply
+                );
+        });
     }
 }
