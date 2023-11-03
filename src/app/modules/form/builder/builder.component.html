@@ -1,12 +1,19 @@
 <div class="d-flex flex-column-fluid">
   <div class="container-fluid col-lg-6 quesiton-card">
     <div class="card mb-5 mb-xl-10">
-      <!-- <div class="card-header border-0 pt-9">
-        <div class="card-title m-0">
-          <h1 class="form-label font-weight-bold">Table Idex</h1>
-          <img src="./assets/media/img/avnon.png" class="w-50" />
+      <div
+        class="card-header border-0 pt-9"
+        style="display: unset; justify-content: unset"
+      >
+        <div class="row">
+          <label class="form-label col-3">Api key</label>
+          <input
+            class="form-control mb-5 col-9"
+            type="password"
+            [(ngModel)]="apiKey"
+          />
         </div>
-      </div> -->
+      </div>
 
       <div class="card-body p-9">
         <div class="app-tabs-card">
@@ -58,10 +65,15 @@
                     >+ Add column</a
                   >
                   <div class="mt-5">
-                    <textarea
+                    <!-- <textarea
                       class="form-control answer-text"
                       formControlName="answer"
-                    ></textarea>
+                    ></textarea> -->
+                    <pre
+                      style="font-size: 1.1em; max-width: 800px"
+                      *ngIf="resultTableIndex$ | async as result"
+                      >{{ result }}</pre
+                    >
                   </div>
                 </form>
               </div>
@@ -94,10 +106,11 @@
                     formControlName="functionName"
                   />
                   <div class="mt-5">
-                    <textarea
-                      class="form-control answer-text"
-                      formControlName="answer"
-                    ></textarea>
+                    <pre
+                      style="font-size: 1.1em; max-width: 800px"
+                      *ngIf="resultItegrationTest$ | async as result"
+                      >{{ result }}</pre
+                    >
                   </div>
                 </form>
               </div>
@@ -125,3 +138,6 @@
     </div>
   </div>
 </div>
+<ngx-spinner size="default" type="ball-scale-multiple"
+  ><p style="color: white">Wait...</p></ngx-spinner
+>
