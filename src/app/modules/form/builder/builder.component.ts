@@ -11,8 +11,11 @@ import {
     FormGroup,
     Validators,
 } from '@angular/forms';
-import { UntilDestroy } from '@ngneat/until-destroy';
-import { OpenApiClient } from 'src/app/api-clients/open-api.client';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { NgxSpinnerService } from 'ngx-spinner';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
+import { OpenAIService } from 'src/app/api-clients/open-api.client';
 import { QUESTION_TYPE } from '../models/question-model.component';
 
 @UntilDestroy()
@@ -31,11 +34,22 @@ export class BuilderComponent implements OnInit, AfterViewInit {
         command: new FormControl('', Validators.required),
     });
     type_enum = QUESTION_TYPE;
-    constructor(private fb: FormBuilder, private openAI: OpenApiClient) {}
+    resultTableIndex$: Observable<any>;
+    resultItegrationTest$: Observable<any>;
+    constructor(
+        private fb: FormBuilder,
+        private openAI: OpenAIService,
+        private spinner: NgxSpinnerService
+    ) {}
 
     ngOnInit() {
         this.formInit();
+        this.resultTableIndex$ = this.resultTableIndex();
+        this.resultItegrationTest$ = this.resultInteTest();
     }
+
+    public apiKey: string =
+        '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';
 
     formInit() {
         this.form = this.fb.group({
@@ -69,16 +83,58 @@ export class BuilderComponent implements OnInit, AfterViewInit {
     public askIntegrationTest() {
         const functionName = this.integrationTestForm.get('functionName').value;
         const question =
-            'I have {0}, give me 5 best cases that I can write for the integration test, shortly answer please'.replace(
+            'I have {0}, give me 5 best cases that I can follow and write the integration test, just give me title shortly please'.replace(
                 '{0}',
                 functionName
             );
-        this.openAI.sendMessage(question).subscribe((response: any) => {
-            const reply = response.choices[0].message.content;
-            this.integrationTestForm.get('answer').setValue(reply);
-        });
+        this.InteSub$.next(question);
     }
 
+    tableIndexSub$ = new BehaviorSubject<string>(null);
+    resultTableIndex(): Observable<any> {
+        return this.tableIndexSub$.pipe(
+            untilDestroyed(this),
+            switchMap((question) => {
+                if (!this.form.valid) {
+                    return of('');
+                }
+                return this.handleMessage(question);
+            })
+        );
+    }
+
+    InteSub$ = new BehaviorSubject<string>(null);
+    resultInteTest(): Observable<any> {
+        return this.InteSub$.pipe(
+            untilDestroyed(this),
+            switchMap((question) => {
+                if (!this.integrationTestForm.valid) {
+                    return of('');
+                }
+                return this.handleMessage(question);
+            })
+        );
+    }
+
+    handleMessage(question: string) {
+        const messages: any[] = [
+            {
+                // TODO Change this to your own prompt
+                content: question,
+                role: 'user',
+            },
+        ];
+        this.spinner.show();
+        return this.openAI
+            .doOpenAICall(messages, 0.5, 'gpt-3.5-turbo', this.apiKey)
+            .pipe(
+                switchMap((res) => {
+                    this.spinner.hide();
+                    return of(res);
+                }),
+                tap((res) => {})
+            );
+    }
     public ask() {
         let indexQuestion =
             'I have table {0} with columns {1}, could you suggest me that I should to create index on which column,  describe shortly in every single column please?';
@@ -94,11 +150,7 @@ export class BuilderComponent implements OnInit, AfterViewInit {
         });
 
         indexQuestion = indexQuestion.replace('{1}', columnNames.join(', '));
-
-        this.openAI.sendMessage(indexQuestion).subscribe((response: any) => {
-            const reply = response.choices[0].message.content;
-            this.form.get('answer').setValue(reply);
-        });
+        this.tableIndexSub$.next(indexQuestion);
     }
 
     public genSQL(i: number) {
@@ -111,17 +163,6 @@ export class BuilderComponent implements OnInit, AfterViewInit {
         askForSQL = askForSQL.replace(/indexName/gi, indexName);
         askForSQL = askForSQL.replace('{1}', columnName);
         askForSQL = askForSQL.replace('{2}', tableName);
-
-        this.openAI.sendMessage(askForSQL).subscribe((response: any) => {
-            const reply = response.choices[0].message.content;
-            const value = this.form.get('answer').value;
-            this.form
-                .get('answer')
-                .setValue(
-                    value +
-                        '\n\n---------------------------------------\n\n' +
-                        reply
-                );
-        });
+        this.tableIndexSub$.next(askForSQL);
     }
 }
