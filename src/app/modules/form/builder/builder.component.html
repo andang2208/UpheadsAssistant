@@ -18,6 +18,42 @@
       <div class="card-body p-9">
         <div class="app-tabs-card">
           <app-tabs>
+            <app-tab-container
+              [tabTitle]="'Integration test'"
+              #integrationTest="tab"
+            >
+              <div class="card" *ngIf="integrationTest.active">
+                <form class="form" [formGroup]="integrationTestForm">
+                  <label class="form-label">Function name</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    formControlName="functionName"
+                  />
+                  <div class="mt-5">
+                    <pre
+                      style="font-size: 1.1em; max-width: 800px"
+                      *ngIf="resultItegrationTest$ | async as result"
+                      >{{ result }}</pre
+                    >
+                  </div>
+                </form>
+              </div>
+              <div class="card-footer">
+                <div class="row">
+                  <div class="col-lg-6">
+                    <!-- <a href="javascript:void(0);" (click)="ask()">Ask</a> -->
+                  </div>
+                  <div class="col-lg-6 float-right">
+                    <button
+                      class="btn btn-primary btn-sm me-3"
+                      (click)="askIntegrationTest()"
+                      translate="Ask"
+                    ></button>
+                  </div>
+                </div>
+              </div>
+            </app-tab-container>
             <app-tab-container [tabTitle]="'Table index'" #tableIndex="tab">
               <div class="card" *ngIf="tableIndex.active">
                 <form class="form" [formGroup]="form">
@@ -86,43 +122,6 @@
                     <button
                       class="btn btn-primary btn-sm me-3"
                       (click)="ask()"
-                      translate="Ask"
-                    ></button>
-                  </div>
-                </div>
-              </div>
-            </app-tab-container>
-
-            <app-tab-container
-              [tabTitle]="'Integration test'"
-              #integrationTest="tab"
-            >
-              <div class="card" *ngIf="integrationTest.active">
-                <form class="form" [formGroup]="integrationTestForm">
-                  <label class="form-label">Function name</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    formControlName="functionName"
-                  />
-                  <div class="mt-5">
-                    <pre
-                      style="font-size: 1.1em; max-width: 800px"
-                      *ngIf="resultItegrationTest$ | async as result"
-                      >{{ result }}</pre
-                    >
-                  </div>
-                </form>
-              </div>
-              <div class="card-footer">
-                <div class="row">
-                  <div class="col-lg-6">
-                    <!-- <a href="javascript:void(0);" (click)="ask()">Ask</a> -->
-                  </div>
-                  <div class="col-lg-6 float-right">
-                    <button
-                      class="btn btn-primary btn-sm me-3"
-                      (click)="askIntegrationTest()"
                       translate="Ask"
                     ></button>
                   </div>
